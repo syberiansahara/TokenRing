@@ -15,6 +15,14 @@ public class Frame {
         return serialNumber;
     }
 
+    public short getSender() {
+        return sender;
+    }
+
+    public short getReceiver() {
+        return receiver;
+    }
+
     public boolean frameIsEmpty() {
         return (token == 0 && message.length == 0);
     }
@@ -26,17 +34,18 @@ public class Frame {
         message = new byte[3*1024]; //3 kBytes message
     }
 
-    public boolean IAmTheReceiver(short receiver) {
-        return receiver == this.receiver;
+    public boolean messageNotYetDelivered() {
+        return (token == 1);
     }
 
     public void releaseToken() {
         token = 0;
     }
 
-    public boolean IAmTheSender(short sender) {
-        return sender == this.sender;
+    public boolean messageDelivered() {
+        return (token == 0 && message.length != 0);
     }
+
 
     public void clearMessage() {
         if (token == 0) message = new byte[0];
