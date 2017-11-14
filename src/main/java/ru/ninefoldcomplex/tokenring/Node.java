@@ -47,14 +47,20 @@ public class Node extends Thread {
             }
         }
 
-
-        if (IAmTheReceiver(currentFrame)) {
-
-        } else if (IAmTheSender(currentFrame)) {
-
-        } else {
-            if (currentFrame.isEmpty() && IHaveAPendingMessage()) {
+        if (currentFrame.isEmpty()) {
+            if (IHaveAPendingMessage()) {
                 currentFrame.seize(nodeSerialNumber, pendingMessages.remove());
+            }
+        } else {
+            if (IAmTheReceiver(currentFrame)) {
+
+
+            } else if (IAmTheSender(currentFrame)) {
+                if (currentFrame.messageNotYetDelivered()) {
+
+                } else if (currentFrame.messageDelivered()) {
+                    currentFrame.clearMessage();
+                }
             }
         }
         forwardFrame(currentFrame);
