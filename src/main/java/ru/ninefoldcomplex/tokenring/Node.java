@@ -1,7 +1,8 @@
 package ru.ninefoldcomplex.tokenring;
 
-import ru.ninefoldcomplex.tokenring.Entity.Frame;
-import ru.ninefoldcomplex.tokenring.Entity.Message;
+import ru.ninefoldcomplex.tokenring.entities.Frame;
+import ru.ninefoldcomplex.tokenring.entities.Message;
+import ru.ninefoldcomplex.tokenring.utils.Utils;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,6 +15,7 @@ public class Node extends Thread {
     private Node nextNode;
     private Queue<Frame> enqueuedFrames = new ConcurrentLinkedQueue<Frame>();
     private Queue<Message> pendingMessages = new ConcurrentLinkedQueue<Message>();
+    private double fixedTime;
 
     public Node(short nodeSerialNumber) {
         this.nodeSerialNumber = nodeSerialNumber;
@@ -31,42 +33,69 @@ public class Node extends Thread {
         pendingMessages.add(message);
     }
 
+    public void run() {
+        try {
+            while (true) {
+                if (! enqueuedFrames.isEmpty()) {
+                    Thread.sleep(1000);
+                    handleTheFirstFrameInTheQueue();
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException();
+        }
+    }
+
     public void handleTheFirstFrameInTheQueue() {
         Frame currentFrame = enqueuedFrames.element();
-        if (currentFrame.isEmpty()) {
-            if (! pendingMessages.isEmpty()) {
-                currentFrame.seize(nodeSerialNumber, pendingMessages.element());
-                pendingMessages.remove();
-            }
-        } else if (currentFrame.messageNotYetDelivered()) {
-            if (IAmTheReceiver(currentFrame)) {
-                currentFrame.releaseToken();
-            } else if (IAmTheSender(currentFrame)) {
-                throw new RuntimeException("Message went through the full cycle and was not delivered");
-            }
-        } else if (currentFrame.messageDelivered()) {
-            if (IAmTheSender(currentFrame)) {
-                currentFrame.clearMessage();
-            }
-        }
 
-        if (currentFrame.isEmpty()) {
+        printReport(currentFrame);
+
+        if (currentFrame.isToken()) {
             if (IHaveAPendingMessage()) {
-                currentFrame.seize(nodeSerialNumber, pendingMessages.remove());
+                currentFrame.seize(pendingMessages.remove());
             }
         } else {
             if (IAmTheReceiver(currentFrame)) {
-
-
+                handleIncomingMessage(currentFrame);
             } else if (IAmTheSender(currentFrame)) {
-                if (currentFrame.messageNotYetDelivered()) {
-
-                } else if (currentFrame.messageDelivered()) {
-                    currentFrame.clearMessage();
+                if (currentFrame.messageHasBeenDelivered()) {
+                    currentFrame.releaseToken();
+                } else if (currentFrame.messageNotYetDelivered()) {
+                    handleUndeliveredMessage();
                 }
             }
         }
+
         forwardFrame(currentFrame);
+    }
+
+    private void printReport(Frame currentFrame) {
+        if (currentFrame.isToken()) {
+            System.out.println("Time: " + Utils.getTimeInSecondsForReport() +
+                            ", Node: " + nodeSerialNumber +
+                            ", Frame: " + currentFrame.getFrameSerialNumber() +
+                            ", IsToken: " + currentFrame.isToken()
+            );
+        } else {
+            System.out.println("Time: " + Utils.getTimeInSecondsForReport() +
+                    ", Node: " + nodeSerialNumber +
+                    ", Frame: " + currentFrame.getFrameSerialNumber() +
+                    ", IsToken: " + currentFrame.isToken() +
+                    ", Receiver: " + currentFrame.getReceiver() +
+                    ", Message Delivered: " + currentFrame.messageHasBeenDelivered()
+            );
+        }
+    }
+
+    private void handleIncomingMessage(Frame currentFrame) {
+        //TODO periodic failure
+        currentFrame.markMessageAsDelivered();
+        System.out.println("Message delivered in " +
+                (Utils.getTimeInSeconds() - currentFrame.getSendTime()) + " seconds");
+    }
+
+    private void handleUndeliveredMessage() {
     }
 
     private boolean IHaveAPendingMessage() {

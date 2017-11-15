@@ -1,9 +1,11 @@
 package ru.ninefoldcomplex.tokenring;
 
-import ru.ninefoldcomplex.tokenring.Entity.Frame;
-import ru.ninefoldcomplex.tokenring.Entity.Message;
+import ru.ninefoldcomplex.tokenring.entities.Frame;
+import ru.ninefoldcomplex.tokenring.entities.Message;
+import ru.ninefoldcomplex.tokenring.utils.Utils;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by ninefoldcomplex on 12.11.2017.
@@ -26,6 +28,7 @@ public class MAU {
 
         for (short i = 0; i < numberOfFrames; i++) {
             frames[i] = new Frame(i);
+            nodes[(short) ThreadLocalRandom.current().nextInt(0, numberOfNodes)].enqueueFrame(frames[i]);
         }
     }
 
@@ -45,14 +48,27 @@ public class MAU {
         short n = 1;
         enqueueAPendingMessageOnThisNode(n);
 
-        double fixedTimeOld = (System.nanoTime())/1000000000.0;
-        double fixedTime = (System.nanoTime())/1000000000.0;
-        for (int i = 0; i<10; i++) {
-            Thread.sleep(2000);
-            fixedTime = (System.nanoTime())/1000000000.0;
-            System.out.println(fixedTime - fixedTimeOld);
-            fixedTimeOld = fixedTime;
+        double stopTime = Utils.getTimeInSeconds() + 30.0;
+
+        for (short i = 0; i < numberOfNodes; i++) {
+            nodes[i].start();
         }
+
+        while(Utils.getTimeInSeconds() < stopTime) {
+        }
+
+        for (short i = 0; i < numberOfNodes; i++) {
+            nodes[i].stop();
+        }
+
+//        double fixedTimeOld = Utils.getTimeInSeconds();
+//        double fixedTime;
+//        for (int i = 0; i<10; i++) {
+//            Thread.sleep(2000);
+//            fixedTime = Utils.getTimeInSeconds();
+//            System.out.println(fixedTime - fixedTimeOld);
+//            System.out.println(fixedTime);
+//            fixedTimeOld = fixedTime;
     }
 
     private static void enqueueAPendingMessageOnThisNode(short serialNumber) {
