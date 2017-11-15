@@ -1,5 +1,8 @@
 package ru.ninefoldcomplex.tokenring.Entity;
 
+/**
+ * Created by ninefoldcomplex on 12.11.2017.
+ */
 public class Frame {
     private final short frameSerialNumber;
     private byte token;
@@ -8,11 +11,15 @@ public class Frame {
 
     public Frame(short frameSerialNumber) {
         this.frameSerialNumber = frameSerialNumber;
-        fixedTime = System.nanoTime();
+        fixTime();
     }
 
     public short getFrameSerialNumber() {
         return frameSerialNumber;
+    }
+
+    public void fixTime() {
+        this.fixedTime = System.nanoTime();
     }
 
     public boolean isEmpty() {
@@ -34,7 +41,7 @@ public class Frame {
     public void seize(short sender, Message message) {
         token = 1;
         this.message = message;
-        fixedTime = System.nanoTime();
+        fixTime();
     }
 
     public boolean messageNotYetDelivered() {

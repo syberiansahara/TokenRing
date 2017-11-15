@@ -5,9 +5,12 @@ import ru.ninefoldcomplex.tokenring.Entity.Message;
 
 import java.util.Random;
 
+/**
+ * Created by ninefoldcomplex on 12.11.2017.
+ */
 public class MAU {
     public static short numberOfNodes = 10;
-    public static short numberOfFrames = 10;
+    public static short numberOfFrames = 1;
 
     private static Node[] nodes = new Node[numberOfNodes];
     private static Frame[] frames = new Frame[numberOfFrames];
@@ -34,17 +37,26 @@ public class MAU {
         return receiverSerialNumber;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         run();
     }
 
-    private static void run() {
+    private static void run() throws Exception{
         short n = 1;
         enqueueAPendingMessageOnThisNode(n);
+
+        double fixedTimeOld = (System.nanoTime())/1000000000.0;
+        double fixedTime = (System.nanoTime())/1000000000.0;
+        for (int i = 0; i<10; i++) {
+            Thread.sleep(2000);
+            fixedTime = (System.nanoTime())/1000000000.0;
+            System.out.println(fixedTime - fixedTimeOld);
+            fixedTimeOld = fixedTime;
+        }
     }
 
     private static void enqueueAPendingMessageOnThisNode(short serialNumber) {
-        nodes[serialNumber].enqueueMessage(new Message(getReceiverSerialNumber(serialNumber)));
+        nodes[serialNumber].enqueueMessage(new Message(serialNumber, getReceiverSerialNumber(serialNumber)));
     }
 
 

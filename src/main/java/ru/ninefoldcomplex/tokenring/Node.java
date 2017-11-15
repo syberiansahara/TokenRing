@@ -6,6 +6,9 @@ import ru.ninefoldcomplex.tokenring.Entity.Message;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * Created by ninefoldcomplex on 12.11.2017.
+ */
 public class Node extends Thread {
     private final short nodeSerialNumber;
     private Node nextNode;

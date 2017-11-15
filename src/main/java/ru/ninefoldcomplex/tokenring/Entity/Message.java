@@ -1,5 +1,8 @@
 package ru.ninefoldcomplex.tokenring.Entity;
 
+/**
+ * Created by ninefoldcomplex on 13.11.2017.
+ */
 public class Message {
     private final short senderSerialNumber;
     private final short receiverSerialNumber;
