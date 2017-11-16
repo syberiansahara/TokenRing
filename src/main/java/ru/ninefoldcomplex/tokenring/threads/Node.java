@@ -1,4 +1,4 @@
-package ru.ninefoldcomplex.tokenring;
+package ru.ninefoldcomplex.tokenring.threads;
 
 import ru.ninefoldcomplex.tokenring.entities.Frame;
 import ru.ninefoldcomplex.tokenring.entities.Message;

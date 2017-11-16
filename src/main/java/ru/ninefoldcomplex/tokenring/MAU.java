@@ -1,18 +1,21 @@
 package ru.ninefoldcomplex.tokenring;
 
 import ru.ninefoldcomplex.tokenring.entities.Frame;
-import ru.ninefoldcomplex.tokenring.entities.Message;
+import ru.ninefoldcomplex.tokenring.threads.MessageGenerator;
+import ru.ninefoldcomplex.tokenring.threads.Node;
 import ru.ninefoldcomplex.tokenring.utils.Utils;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by ninefoldcomplex on 12.11.2017.
  */
 public class MAU {
-    public static short numberOfNodes = 10;
-    public static short numberOfFrames = 1;
+    private static double runInterval = 30.0;
+    private static int sleepTime = 1000;
+
+    private static short numberOfNodes = 10;
+    private static short numberOfFrames = 1;
 
     private static Node[] nodes = new Node[numberOfNodes];
     private static Frame[] frames = new Frame[numberOfFrames];
@@ -32,48 +35,26 @@ public class MAU {
         }
     }
 
-    public static short getReceiverSerialNumber(short senderSerialNumber) {
-        short receiverSerialNumber;
-        do {
-            receiverSerialNumber = (short) new Random().nextInt(numberOfNodes);
-        } while (receiverSerialNumber == senderSerialNumber);
-        return receiverSerialNumber;
-    }
-
     public static void main(String[] args) throws Exception {
         run();
     }
 
     private static void run() throws Exception{
-        short n = 1;
-        enqueueAPendingMessageOnThisNode(n);
+        double stopTime = Utils.getTimeInSeconds() + runInterval;
 
-        double stopTime = Utils.getTimeInSeconds() + 30.0;
-
+        MessageGenerator messageGenerator = new MessageGenerator(nodes);
+        messageGenerator.start();
         for (short i = 0; i < numberOfNodes; i++) {
             nodes[i].start();
         }
 
         while(Utils.getTimeInSeconds() < stopTime) {
+            Thread.sleep(sleepTime);
         }
 
         for (short i = 0; i < numberOfNodes; i++) {
+            messageGenerator.stop();
             nodes[i].stop();
         }
-
-//        double fixedTimeOld = Utils.getTimeInSeconds();
-//        double fixedTime;
-//        for (int i = 0; i<10; i++) {
-//            Thread.sleep(2000);
-//            fixedTime = Utils.getTimeInSeconds();
-//            System.out.println(fixedTime - fixedTimeOld);
-//            System.out.println(fixedTime);
-//            fixedTimeOld = fixedTime;
     }
-
-    private static void enqueueAPendingMessageOnThisNode(short serialNumber) {
-        nodes[serialNumber].enqueueMessage(new Message(serialNumber, getReceiverSerialNumber(serialNumber)));
-    }
-
-
 }
