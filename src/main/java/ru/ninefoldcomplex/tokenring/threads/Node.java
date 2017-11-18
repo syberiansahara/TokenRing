@@ -4,8 +4,10 @@ import ru.ninefoldcomplex.tokenring.entities.Frame;
 import ru.ninefoldcomplex.tokenring.entities.Message;
 import ru.ninefoldcomplex.tokenring.utils.Utils;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ninefoldcomplex on 12.11.2017.
@@ -15,10 +17,15 @@ public class Node extends Thread {
     private Node nextNode;
     private Queue<Frame> enqueuedFrames = new ConcurrentLinkedQueue<Frame>();
     private Queue<Message> pendingMessages = new ConcurrentLinkedQueue<Message>();
-    private double fixedTime;
+    private final double tokenHoldingTime;
+    private List<Double> deliveryTimes;
+    private AtomicInteger deliveredPayloadVolume;
 
-    public Node(short nodeSerialNumber) {
+    public Node(short nodeSerialNumber, double tokenHoldingTime, List<Double> deliveryTimes, AtomicInteger deliveredPayloadVolume) {
         this.nodeSerialNumber = nodeSerialNumber;
+        this.tokenHoldingTime = tokenHoldingTime;
+        this.deliveryTimes = deliveryTimes;
+        this.deliveredPayloadVolume = deliveredPayloadVolume;
     }
 
     public void setNextNode(Node nextNode) {
@@ -37,7 +44,7 @@ public class Node extends Thread {
         try {
             while (true) {
                 if (! enqueuedFrames.isEmpty()) {
-                    Thread.sleep(1000);
+//                    Thread.sleep(1000);
                     handleTheFirstFrameInTheQueue();
                 }
             }
@@ -47,13 +54,13 @@ public class Node extends Thread {
     }
 
     public void handleTheFirstFrameInTheQueue() {
-        Frame currentFrame = enqueuedFrames.element();
+        Frame currentFrame = enqueuedFrames.remove();
 
         printReport(currentFrame);
 
         if (currentFrame.isToken()) {
             if (IHaveAPendingMessage()) {
-                currentFrame.seize(pendingMessages.remove());
+                currentFrame.sendMessage(pendingMessages.remove());
             }
         } else {
             if (IAmTheReceiver(currentFrame)) {
@@ -62,7 +69,7 @@ public class Node extends Thread {
                 if (currentFrame.messageHasBeenDelivered()) {
                     currentFrame.releaseToken();
                 } else if (currentFrame.messageNotYetDelivered()) {
-                    handleUndeliveredMessage();
+                    handleUndeliveredMessage(currentFrame);
                 }
             }
         }
@@ -91,11 +98,17 @@ public class Node extends Thread {
     private void handleIncomingMessage(Frame currentFrame) {
         //TODO periodic failure
         currentFrame.markMessageAsDelivered();
+        double deliveryTime = Utils.getTimeInSeconds() - currentFrame.getSendTime();
         System.out.println("Message delivered in " +
-                (Utils.getTimeInSeconds() - currentFrame.getSendTime()) + " seconds");
+                 deliveryTime + " seconds");
+        deliveryTimes.add(deliveryTime);
+        deliveredPayloadVolume.addAndGet(currentFrame.getPayloadVolume());
     }
 
-    private void handleUndeliveredMessage() {
+    private void handleUndeliveredMessage(Frame currentFrame) {
+        if (Utils.getTimeInSeconds() - currentFrame.getSendTime() > tokenHoldingTime) {
+            currentFrame.releaseToken();
+        }
     }
 
     private boolean IHaveAPendingMessage() {
@@ -103,7 +116,7 @@ public class Node extends Thread {
     }
 
     private void forwardFrame(Frame currentFrame) {
-        nextNode.enqueueFrame(enqueuedFrames.remove());
+        nextNode.enqueueFrame(currentFrame);
     }
 
 

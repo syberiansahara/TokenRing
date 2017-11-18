@@ -9,23 +9,24 @@ import java.util.concurrent.ThreadLocalRandom;
  * Created by ninefoldcomplex on 17.11.2017.
  */
 public class MessageGenerator extends Thread {
-    private double meanSleepInterval = 5000;
     private Node[] nodes;
     private short numberOfNodes;
+    private final double meanMessageTimeInterval;
 
-    public MessageGenerator(Node[] nodes) {
+    public MessageGenerator(Node[] nodes, double meanMessageTimeInterval) {
         this.nodes = nodes;
         this.numberOfNodes = (short) nodes.length;
+        this.meanMessageTimeInterval = meanMessageTimeInterval;
     }
 
     public void run() {
         try {
             while (true) {
-                long nextSleepInterval = getNextSleepInterval();
                 short nodeSerialNumber = (short) ThreadLocalRandom.current().nextInt(0, numberOfNodes);
-                System.out.println("Enqueued a message in " + nextSleepInterval/1000.0 +
-                "s on " + nodeSerialNumber + " node");
                 enqueueAPendingMessageOnThisNode(nodeSerialNumber);
+                long nextSleepInterval = getNextSleepInterval();
+                                System.out.println("Enqueued a message in " + nextSleepInterval/1000.0 +
+                "s on " + nodeSerialNumber + " node");
                 Thread.sleep(nextSleepInterval);
             }
         } catch (Exception ex) {
@@ -34,8 +35,7 @@ public class MessageGenerator extends Thread {
     }
 
     private long getNextSleepInterval() {
-        return new Double(Math.log(1 - (new Random().nextDouble()))*(- meanSleepInterval))
-                .longValue();
+        return new Double(Math.log(1 - (new Random().nextDouble()))*( - 1000.0 * meanMessageTimeInterval)).longValue();
     }
 
     private void enqueueAPendingMessageOnThisNode(short serialNumber) {

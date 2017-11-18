@@ -1,35 +1,26 @@
 package ru.ninefoldcomplex.tokenring.entities;
 
-import ru.ninefoldcomplex.tokenring.utils.Utils;
-
 /**
  * Created by ninefoldcomplex on 12.11.2017.
  */
 public class Frame {
     private final short frameSerialNumber;
     private Message message;
-    private double fixedTime;
 
     public Frame(short frameSerialNumber) {
         this.frameSerialNumber = frameSerialNumber;
-        fixTime();
     }
 
     public short getFrameSerialNumber() {
         return frameSerialNumber;
     }
 
-    public void fixTime() {
-        this.fixedTime = Utils.getTimeInSeconds();
-    }
-
     public boolean isToken() {
         return message == null;
     }
 
-    public void seize(Message message) {
-        this.message = message;
-        fixTime();
+    public void sendMessage(Message message) {
+        this.message = message.send();
     }
 
     public short getReceiver() {
@@ -49,7 +40,11 @@ public class Frame {
     }
 
     public double getSendTime() {
-        return fixedTime;
+        return message.getSendTime();
+    }
+
+    public int getPayloadVolume() {
+        return message.getPayloadVolume();
     }
 
     public boolean messageHasBeenDelivered() {
@@ -59,5 +54,6 @@ public class Frame {
     public void releaseToken() {
         message = null;
     }
+
 }
 
