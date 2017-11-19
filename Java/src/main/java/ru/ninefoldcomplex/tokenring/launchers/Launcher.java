@@ -8,8 +8,8 @@ import ru.ninefoldcomplex.tokenring.utils.Settings;
 import ru.ninefoldcomplex.tokenring.utils.Utils;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -27,6 +27,8 @@ public class Launcher {
     private final double launcherSleepTimeInterval = Settings.launcherSleepTimeInterval;
     private final double receiverSuccessProbability = Settings.receiverSuccessProbability;
 
+    private final double[] tokenHoldingTimeMultiplierArray = Settings.tokenHoldingTimeMultiplierArray;
+
     private final short numberOfNodes;
     private final short numberOfFrames;
     private final double meanMessageTimeInterval;
@@ -43,15 +45,52 @@ public class Launcher {
         this.meanMessageTimeInterval = meanMessageTimeInterval;
     }
 
+    public void run() throws Exception {
+        double meanFrameTransmissionTime = getMeanFrameTransmissionTime();
+        for (double THTMultiplier : tokenHoldingTimeMultiplierArray) {
+            launchSystemWithThisTokenHoldingTime(meanFrameTransmissionTime, THTMultiplier);
+        }
+    }
+
     public double getMeanFrameTransmissionTime() throws Exception {
-        double executionTime = runMainExecutionCycleAndReport(trialTargetCyclesCount, maximumTokenHoldingTime);
-        System.out.println(executionTime);
+        reportTrialLaunch(runMainExecutionCycle(trialTargetCyclesCount, maximumTokenHoldingTime));
         return new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray()).getMean();
     }
 
-    public void launchSystemWithThisTokenHoldingTime(double tokenHoldingTime) throws Exception {
-        double executionTime = runMainExecutionCycleAndReport(targetCyclesCount, tokenHoldingTime);
-        analyzeAndLogResults(tokenHoldingTime, executionTime);
+    private void reportTrialLaunch(double executionTime) throws Exception {
+        String report = Utils.getReportOnTrialLaunchCompletion(numberOfNodes, numberOfFrames,
+                meanMessageTimeInterval, executionTime);
+        System.out.println("Trial launch: " + report);
+        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
+                meanMessageTimeInterval + ".trial.txt");
+
+        try (BufferedWriter bw = Files.newBufferedWriter(logFile,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
+            bw.write(report);
+            bw.flush();
+        }
+    }
+
+    public void launchSystemWithThisTokenHoldingTime(double meanFrameTransmissionTime, double THTMultiplier) throws Exception {
+        double executionTime = runMainExecutionCycle(targetCyclesCount, meanFrameTransmissionTime * THTMultiplier);
+        reportLaunch(executionTime, meanFrameTransmissionTime, THTMultiplier);
+    }
+
+    private void reportLaunch(double executionTime, double meanFrameTransmissionTime, double THTMultiplier) throws Exception {
+        DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
+
+        String report = Utils.getReportOnLaunchCompletion(numberOfNodes, numberOfFrames,
+                meanMessageTimeInterval, executionTime, meanFrameTransmissionTime, THTMultiplier,
+                stats.getMean(), stats.getStandardDeviation());
+        System.out.println("Main launch: " + report);
+        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
+                meanMessageTimeInterval + "-" + THTMultiplier + ".txt");
+
+        try (BufferedWriter bw = Files.newBufferedWriter(logFile,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
+            bw.write(report);
+            bw.flush();
+        }
     }
 
     private void initializeLaunch(double tokenHoldingTime) {
@@ -77,8 +116,10 @@ public class Launcher {
         messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
     }
 
-    private void runMainExecutionCycle(int targetCyclesCount, double tokenHoldingTime) throws InterruptedException {
+    private double runMainExecutionCycle(int targetCyclesCount, double tokenHoldingTime) throws InterruptedException {
         initializeLaunch(tokenHoldingTime);
+
+        double fixedTime = Utils.getTimeInSeconds();
 
         messageGenerator.start();
 
@@ -94,29 +135,8 @@ public class Launcher {
             messageGenerator.stop();
             nodes[i].stop();
         }
-    }
 
-    private double runMainExecutionCycleAndReport(int targetCyclesCount, double tokenHoldingTime) throws InterruptedException {
-        System.out.println(Utils.getReportBeforeLaunchStart(numberOfNodes, numberOfFrames,
-                meanMessageTimeInterval, tokenHoldingTime));
-        double fixedTime = Utils.getTimeInSeconds();
-        runMainExecutionCycle(targetCyclesCount, tokenHoldingTime);
         return Utils.getTimeInSeconds() - fixedTime;
     }
-
-    private void analyzeAndLogResults(double tokenHoldingTime, double executionTime) throws IOException {
-        //todo refactoring
-        DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
-
-        String report = Utils.getReportOnLaunchCompletion(numberOfNodes, numberOfFrames,
-                meanMessageTimeInterval, tokenHoldingTime, stats.getMean(), stats.getStandardDeviation(), executionTime);
-
-        System.out.println(report);
-
-        try (BufferedWriter bw = Files.newBufferedWriter(Settings.logFile,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
-            bw.write(report);
-            bw.flush();
-        }
-    }
 }
+

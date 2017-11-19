@@ -9,12 +9,11 @@ import java.util.Locale;
  */
 public class Utils {
     private static double initialTime;
-    private static DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.GERMAN);
+    private static DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
 
     static  {
         initialTime = System.nanoTime()/1000000000.0;
-        decimalFormat.setMaximumFractionDigits(4);
-        decimalFormat.setGroupingUsed(true);
+        decimalFormat.setMaximumFractionDigits(6);
     }
 
     public static double getTimeInSeconds() {
@@ -26,29 +25,26 @@ public class Utils {
     }
 
     public static String getReportOnLaunchCompletion(short numberOfNodes, short numberOfFrames,
-                                                     double meanMessageTimeInterval, double tokenHoldingTime, double mean, double std, double executionTime) {
+                                                     double meanMessageTimeInterval, double executionTime,
+                                                     double meanFrameTransmissionTime, double THTMultiplier,
+                                                     double mean, double std) {
         return numberOfNodes + ", " +
                 numberOfFrames + ", " +
                 meanMessageTimeInterval + ", " +
-                decimalFormat.format(tokenHoldingTime) + ", " +
-                decimalFormat.format(mean) + " +- " +
-                decimalFormat.format(std) + ", "
-                + decimalFormat.format(executionTime)
-                + "\r\n";
+                decimalFormat.format(executionTime) + ", " +
+                decimalFormat.format(meanFrameTransmissionTime) + ", " +
+                decimalFormat.format(THTMultiplier) + ", " +
+                decimalFormat.format(mean) + ", " +
+                decimalFormat.format(std) +
+                "\r\n";
     }
 
-    public static String getReportBeforeLaunchStart(short numberOfNodes, short numberOfFrames,
-                                                     double meanMessageTimeInterval, double tokenHoldingTime) {
-        if (tokenHoldingTime < Settings.maximumTokenHoldingTime)
-            return "\r\nMain Execution: " +
-                numberOfNodes + ", " +
+    public static String getReportOnTrialLaunchCompletion(short numberOfNodes, short numberOfFrames,
+                                                     double meanMessageTimeInterval, double executionTime) {
+        return numberOfNodes + ", " +
                 numberOfFrames + ", " +
                 meanMessageTimeInterval + ", " +
-                decimalFormat.format(tokenHoldingTime);
-        else
-            return "\r\nTrial Execution: " +
-                numberOfNodes + ", " +
-                numberOfFrames + ", " +
-                meanMessageTimeInterval;
+                decimalFormat.format(executionTime) +
+                "\r\n";
     }
 }
