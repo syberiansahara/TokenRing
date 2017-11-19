@@ -1,7 +1,9 @@
 package ru.ninefoldcomplex.tokenring.threads;
 
+import org.apache.commons.math3.distribution.BinomialDistribution;
 import ru.ninefoldcomplex.tokenring.entities.Frame;
 import ru.ninefoldcomplex.tokenring.entities.Message;
+import ru.ninefoldcomplex.tokenring.utils.Settings;
 import ru.ninefoldcomplex.tokenring.utils.Utils;
 
 import java.util.List;
@@ -18,12 +20,14 @@ public class Node extends Thread {
     private Queue<Frame> enqueuedFrames = new ConcurrentLinkedQueue<Frame>();
     private Queue<Message> pendingMessages = new ConcurrentLinkedQueue<Message>();
     private final double tokenHoldingTime;
+    private final double receiverSuccessProbability;
     private List<Double> deliveryTimes;
     private AtomicInteger deliveredPayloadVolume;
 
-    public Node(short nodeSerialNumber, double tokenHoldingTime, List<Double> deliveryTimes, AtomicInteger deliveredPayloadVolume) {
+    public Node(short nodeSerialNumber, double tokenHoldingTime, double receiverSuccessProbability, List<Double> deliveryTimes, AtomicInteger deliveredPayloadVolume) {
         this.nodeSerialNumber = nodeSerialNumber;
         this.tokenHoldingTime = tokenHoldingTime;
+        this.receiverSuccessProbability = receiverSuccessProbability;
         this.deliveryTimes = deliveryTimes;
         this.deliveredPayloadVolume = deliveredPayloadVolume;
     }
@@ -56,7 +60,7 @@ public class Node extends Thread {
     public void handleTheFirstFrameInTheQueue() {
         Frame currentFrame = enqueuedFrames.remove();
 
-        printReport(currentFrame);
+        if (Settings.debugModeIsOn) printReport(currentFrame);
 
         if (currentFrame.isToken()) {
             if (IHaveAPendingMessage()) {
@@ -96,17 +100,22 @@ public class Node extends Thread {
     }
 
     private void handleIncomingMessage(Frame currentFrame) {
-        //TODO periodic failure
-        currentFrame.markMessageAsDelivered();
-        double deliveryTime = Utils.getTimeInSeconds() - currentFrame.getSendTime();
-        System.out.println("Message delivered in " +
-                 deliveryTime + " seconds");
-        deliveryTimes.add(deliveryTime);
-        deliveredPayloadVolume.addAndGet(currentFrame.getPayloadVolume());
+        if (new BinomialDistribution(1, receiverSuccessProbability).sample() == 1) {
+            currentFrame.markMessageAsDelivered();
+            double deliveryTime = Utils.getTimeInSeconds() - currentFrame.getSendTime();
+            if (Settings.debugModeIsOn) System.out.println("Message delivered in " +
+                    deliveryTime + " seconds");
+            deliveryTimes.add(deliveryTime);
+            deliveredPayloadVolume.addAndGet(currentFrame.getPayloadVolume());
+        } else {
+            if (Settings.weakDebugModeIsOn) System.out.println("Failed reception on " + nodeSerialNumber + " node");
+        }
     }
 
     private void handleUndeliveredMessage(Frame currentFrame) {
         if (Utils.getTimeInSeconds() - currentFrame.getSendTime() > tokenHoldingTime) {
+            if (Settings.weakDebugModeIsOn) System.out.println("Forced token release on " + nodeSerialNumber + " node, " +
+                    (Utils.getTimeInSeconds() - currentFrame.getSendTime()) + " > " + tokenHoldingTime);
             currentFrame.releaseToken();
         }
     }

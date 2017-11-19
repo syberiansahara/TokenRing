@@ -1,6 +1,7 @@
 package ru.ninefoldcomplex.tokenring.threads;
 
 import ru.ninefoldcomplex.tokenring.entities.Message;
+import ru.ninefoldcomplex.tokenring.utils.Settings;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,7 +26,7 @@ public class MessageGenerator extends Thread {
                 short nodeSerialNumber = (short) ThreadLocalRandom.current().nextInt(0, numberOfNodes);
                 enqueueAPendingMessageOnThisNode(nodeSerialNumber);
                 long nextSleepInterval = getNextSleepInterval();
-                                System.out.println("Enqueued a message in " + nextSleepInterval/1000.0 +
+                if (Settings.debugModeIsOn) System.out.println("Enqueued a message in " + nextSleepInterval/1000.0 +
                 "s on " + nodeSerialNumber + " node");
                 Thread.sleep(nextSleepInterval);
             }

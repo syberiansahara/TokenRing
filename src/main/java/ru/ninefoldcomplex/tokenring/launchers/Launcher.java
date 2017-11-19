@@ -4,7 +4,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import ru.ninefoldcomplex.tokenring.entities.Frame;
 import ru.ninefoldcomplex.tokenring.threads.MessageGenerator;
 import ru.ninefoldcomplex.tokenring.threads.Node;
-import ru.ninefoldcomplex.tokenring.utils.Constants;
+import ru.ninefoldcomplex.tokenring.utils.Settings;
 import ru.ninefoldcomplex.tokenring.utils.Utils;
 
 import java.util.List;
@@ -16,14 +16,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by ninefoldcomplex on 12.11.2017.
  */
 public class Launcher {
-    private final double runInterval = Constants.getRunInterval();
-    private final double launcherSleepTimeInterval = Constants.getLauncherSleepTimeInterval();
+    private final double runInterval = Settings.runInterval;
+    private final double launcherSleepTimeInterval = Settings.launcherSleepTimeInterval;
 
     private final short numberOfNodes;
     private final short numberOfFrames;
     private final double meanMessageTimeInterval;
     private final double tokenHoldingTime;
-    private final double receiverFailureProbability;
+    private final double receiverSuccessProbability;
 
     private Node[] nodes;
     private Frame[] frames;
@@ -32,12 +32,12 @@ public class Launcher {
     public AtomicInteger deliveredPayloadVolume = new AtomicInteger();
 
     public Launcher(short numberOfNodes, short numberOfFrames,
-                    double meanMessageTimeInterval, double tokenHoldingTime, double receiverFailureProbability) {
+                    double meanMessageTimeInterval, double tokenHoldingTime, double receiverSuccessProbability) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfFrames = numberOfFrames;
         this.meanMessageTimeInterval = meanMessageTimeInterval;
         this.tokenHoldingTime = tokenHoldingTime;
-        this.receiverFailureProbability = receiverFailureProbability;
+        this.receiverSuccessProbability = receiverSuccessProbability;
     }
 
     public void run() {
@@ -52,13 +52,11 @@ public class Launcher {
     }
 
     private void initializeThreads() {
-        messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
-
         nodes = new Node[numberOfNodes];
         frames = new Frame[numberOfFrames];
 
         for (short i = 0; i < numberOfNodes; i++) {
-            nodes[i] = new Node(i, tokenHoldingTime, deliveryTimes, deliveredPayloadVolume);
+            nodes[i] = new Node(i, tokenHoldingTime, receiverSuccessProbability, deliveryTimes, deliveredPayloadVolume);
         }
 
         for (short i = 0; i < numberOfNodes; i++) {
@@ -69,6 +67,8 @@ public class Launcher {
             frames[i] = new Frame(i);
             nodes[(short) ThreadLocalRandom.current().nextInt(0, numberOfNodes)].enqueueFrame(frames[i]);
         }
+
+        messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
     }
 
     private void runMainExecutionCycle() throws InterruptedException {
@@ -91,7 +91,7 @@ public class Launcher {
     }
 
     private void analyzeLatency() {
-//        System.out.println(deliveryTimes);
+//        System.out.println(deliveryTimes);`
         DescriptiveStatistics stats = new DescriptiveStatistics();
 
         for( int i = 0; i < deliveryTimes.size(); i++) {
