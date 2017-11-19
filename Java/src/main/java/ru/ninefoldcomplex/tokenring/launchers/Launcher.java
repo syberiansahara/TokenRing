@@ -95,7 +95,7 @@ public class Launcher {
 
     private void analyzeAndLogResults() throws IOException {
         //todo refactoring
-        DescriptiveStatistics stats = new DescriptiveStatistics();
+        DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
 
         for( int i = 0; i < deliveryTimes.size(); i++) {
             stats.addValue(deliveryTimes.get(i));
@@ -106,10 +106,10 @@ public class Launcher {
 
         System.out.println(report);
 
-        BufferedWriter bw = Files.newBufferedWriter(Settings.logFile,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
-        bw.write(report);
-        bw.flush();
-
+        try (BufferedWriter bw = Files.newBufferedWriter(Settings.logFile,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
+            bw.write(report);
+            bw.flush();
+        }
     }
 }

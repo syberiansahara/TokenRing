@@ -5,11 +5,17 @@ package ru.ninefoldcomplex.tokenring.launchers;
  */
 public class MasterLauncher {
 
-    private static short[] numberOfNodesArray = {2, 5, 10, 20};
-    private static short[] numberOfFramesArray = {1, 2, 5, 10};
-    private static double[] meanMessageTimeIntervalArray = {0.1, 0.5, 1.0, 2.0};
-    private static double[] tokenHoldingTimeArray = {0, 0.1, 1.0, 10, 20, 100};
-    private static double[] receiverSuccessProbabilityArray = {0.1, 0.2, 0.5, 0.9, 1.0};
+//    private static short[] numberOfNodesArray = {2, 5, 10, 20};
+//    private static short[] numberOfFramesArray = {1, 2, 5, 10};
+//    private static double[] meanMessageTimeIntervalArray = {0.1, 0.5, 1.0, 2.0};
+//    private static double[] tokenHoldingTimeArray = {0, 0.1, 1.0, 10, 20, 100};
+//    private static double[] receiverSuccessProbabilityArray = {0.1, 0.2, 0.5, 0.9, 1.0};
+
+    private static short[] numberOfNodesArray = {5, 10};
+    private static short[] numberOfFramesArray = {2, 5};
+    private static double[] meanMessageTimeIntervalArray = {0.1, 1.0};
+    private static double[] tokenHoldingTimeArray = {0, 1.0, 10};
+    private static double[] receiverSuccessProbabilityArray = {0.7};
 
     public static void main(String[] args) {
         for (short numberOfNodes : numberOfNodesArray) {
