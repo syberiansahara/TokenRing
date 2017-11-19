@@ -31,7 +31,7 @@ public class MessageGenerator extends Thread {
                 Thread.sleep(nextSleepInterval);
             }
         } catch (Exception ex) {
-            throw new RuntimeException();
+            throw new RuntimeException(ex);
         }
     }
 

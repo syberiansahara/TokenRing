@@ -21,40 +21,41 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Launcher {
     private final double runInterval = Settings.runInterval;
+    private final double trialRunInterval = Settings.trialRunInterval;
     private final double launcherSleepTimeInterval = Settings.launcherSleepTimeInterval;
+    private final double receiverSuccessProbability = Settings.receiverSuccessProbability;
 
     private final short numberOfNodes;
     private final short numberOfFrames;
     private final double meanMessageTimeInterval;
-    private final double tokenHoldingTime;
-    private final double receiverSuccessProbability;
 
     private Node[] nodes;
     private Frame[] frames;
     private MessageGenerator messageGenerator;
-    public List<Double> deliveryTimes = new CopyOnWriteArrayList<Double>();
-    public AtomicInteger deliveredPayloadVolume = new AtomicInteger();
+    private List<Double> deliveryTimes;
+    private AtomicInteger deliveredPayloadVolume;
 
-    public Launcher(short numberOfNodes, short numberOfFrames,
-                    double meanMessageTimeInterval, double tokenHoldingTime, double receiverSuccessProbability) {
+    public Launcher(short numberOfNodes, short numberOfFrames, double meanMessageTimeInterval) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfFrames = numberOfFrames;
         this.meanMessageTimeInterval = meanMessageTimeInterval;
-        this.tokenHoldingTime = tokenHoldingTime;
-        this.receiverSuccessProbability = receiverSuccessProbability;
     }
 
-    public void run() {
-        try {
-            initializeThreads();
-            runMainExecutionCycle();
-            analyzeAndLogResults();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+    public double getMeanFrameTransmissionTime() throws Exception {
+        runMainExecutionCycle(trialRunInterval, Double.MAX_VALUE);
+        return new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray()).getMean();
     }
 
-    private void initializeThreads() {
+    public void launchSystemWithThisTokenHoldingTime(double tokenHoldingTime) throws Exception {
+        runMainExecutionCycle(runInterval, tokenHoldingTime);
+        analyzeAndLogResults(tokenHoldingTime);
+    }
+
+
+    private void initializeLaunch(double receiverSuccessProbability, double tokenHoldingTime) {
+        deliveryTimes = new CopyOnWriteArrayList<Double>();
+        deliveredPayloadVolume = new AtomicInteger();
+
         nodes = new Node[numberOfNodes];
         frames = new Frame[numberOfFrames];
 
@@ -74,14 +75,16 @@ public class Launcher {
         messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
     }
 
-    private void runMainExecutionCycle() throws InterruptedException {
-        double stopTime = Utils.getTimeInSeconds() + runInterval;
+    private void runMainExecutionCycle(double runInterval, double tokenHoldingTime) throws InterruptedException {
+        initializeLaunch(receiverSuccessProbability, tokenHoldingTime);
 
         messageGenerator.start();
 
         for (short i = 0; i < numberOfNodes; i++) {
             nodes[i].start();
         }
+
+        double stopTime = Utils.getTimeInSeconds() + runInterval;
 
         while (Utils.getTimeInSeconds() < stopTime) {
             Thread.sleep((long) launcherSleepTimeInterval * 1000);
@@ -93,13 +96,9 @@ public class Launcher {
         }
     }
 
-    private void analyzeAndLogResults() throws IOException {
+    private void analyzeAndLogResults(double tokenHoldingTime) throws IOException {
         //todo refactoring
         DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
-
-        for( int i = 0; i < deliveryTimes.size(); i++) {
-            stats.addValue(deliveryTimes.get(i));
-        }
 
         String report = Utils.getReport(numberOfNodes, numberOfFrames,
                 meanMessageTimeInterval, tokenHoldingTime, receiverSuccessProbability, stats.getMean(), stats.getStandardDeviation(), deliveryTimes.size());

@@ -45,15 +45,11 @@ public class Node extends Thread {
     }
 
     public void run() {
-        try {
-            while (true) {
-                if (! enqueuedFrames.isEmpty()) {
+        while (true) {
+            if (! enqueuedFrames.isEmpty()) {
 //                    Thread.sleep(1000);
-                    handleTheFirstFrameInTheQueue();
-                }
+                handleTheFirstFrameInTheQueue();
             }
-        } catch (Exception ex) {
-            throw new RuntimeException();
         }
     }
 
