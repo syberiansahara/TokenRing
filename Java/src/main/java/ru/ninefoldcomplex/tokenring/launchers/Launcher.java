@@ -20,8 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by ninefoldcomplex on 12.11.2017.
  */
 public class Launcher {
-    private final double runInterval = Settings.runInterval;
-    private final double trialRunInterval = Settings.trialRunInterval;
+    private final int targetCyclesCount = Settings.targetCyclesCount;
+    private final int trialTargetCyclesCount = Settings.trialTargetCyclesCount;
+
+    private final double maximumTokenHoldingTime = Settings.maximumTokenHoldingTime;
     private final double launcherSleepTimeInterval = Settings.launcherSleepTimeInterval;
     private final double receiverSuccessProbability = Settings.receiverSuccessProbability;
 
@@ -42,17 +44,17 @@ public class Launcher {
     }
 
     public double getMeanFrameTransmissionTime() throws Exception {
-        runMainExecutionCycle(trialRunInterval, Double.MAX_VALUE);
+        double executionTime = runMainExecutionCycleAndReport(trialTargetCyclesCount, maximumTokenHoldingTime);
+        System.out.println(executionTime);
         return new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray()).getMean();
     }
 
     public void launchSystemWithThisTokenHoldingTime(double tokenHoldingTime) throws Exception {
-        runMainExecutionCycle(runInterval, tokenHoldingTime);
-        analyzeAndLogResults(tokenHoldingTime);
+        double executionTime = runMainExecutionCycleAndReport(targetCyclesCount, tokenHoldingTime);
+        analyzeAndLogResults(tokenHoldingTime, executionTime);
     }
 
-
-    private void initializeLaunch(double receiverSuccessProbability, double tokenHoldingTime) {
+    private void initializeLaunch(double tokenHoldingTime) {
         deliveryTimes = new CopyOnWriteArrayList<Double>();
         deliveredPayloadVolume = new AtomicInteger();
 
@@ -75,8 +77,8 @@ public class Launcher {
         messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
     }
 
-    private void runMainExecutionCycle(double runInterval, double tokenHoldingTime) throws InterruptedException {
-        initializeLaunch(receiverSuccessProbability, tokenHoldingTime);
+    private void runMainExecutionCycle(int targetCyclesCount, double tokenHoldingTime) throws InterruptedException {
+        initializeLaunch(tokenHoldingTime);
 
         messageGenerator.start();
 
@@ -84,9 +86,7 @@ public class Launcher {
             nodes[i].start();
         }
 
-        double stopTime = Utils.getTimeInSeconds() + runInterval;
-
-        while (Utils.getTimeInSeconds() < stopTime) {
+        while (deliveryTimes.size() < targetCyclesCount) {
             Thread.sleep((long) launcherSleepTimeInterval * 1000);
         }
 
@@ -96,12 +96,20 @@ public class Launcher {
         }
     }
 
-    private void analyzeAndLogResults(double tokenHoldingTime) throws IOException {
+    private double runMainExecutionCycleAndReport(int targetCyclesCount, double tokenHoldingTime) throws InterruptedException {
+        System.out.println(Utils.getReportBeforeLaunchStart(numberOfNodes, numberOfFrames,
+                meanMessageTimeInterval, tokenHoldingTime));
+        double fixedTime = Utils.getTimeInSeconds();
+        runMainExecutionCycle(targetCyclesCount, tokenHoldingTime);
+        return Utils.getTimeInSeconds() - fixedTime;
+    }
+
+    private void analyzeAndLogResults(double tokenHoldingTime, double executionTime) throws IOException {
         //todo refactoring
         DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
 
-        String report = Utils.getReport(numberOfNodes, numberOfFrames,
-                meanMessageTimeInterval, tokenHoldingTime, receiverSuccessProbability, stats.getMean(), stats.getStandardDeviation(), deliveryTimes.size());
+        String report = Utils.getReportOnLaunchCompletion(numberOfNodes, numberOfFrames,
+                meanMessageTimeInterval, tokenHoldingTime, stats.getMean(), stats.getStandardDeviation(), executionTime);
 
         System.out.println(report);
 
