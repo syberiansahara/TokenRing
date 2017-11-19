@@ -7,11 +7,13 @@ import java.text.DecimalFormat;
  */
 public class Utils {
     private static double initialTime;
-    private static DecimalFormat df = new DecimalFormat();
+    private static DecimalFormat decimalFormatForTime = new DecimalFormat();
+    private static DecimalFormat decimalFormatForMetrics = new DecimalFormat();
 
     static  {
         initialTime = System.nanoTime()/1000000000.0;
-        df.setMaximumFractionDigits(6);
+        decimalFormatForTime.setMaximumFractionDigits(6);
+        decimalFormatForTime.setMaximumFractionDigits(4);
     }
 
     public static double getTimeInSeconds() {
@@ -19,6 +21,19 @@ public class Utils {
     }
 
     public static String getTimeInSecondsForReport() {
-        return df.format(System.nanoTime()/1000000000.0 - initialTime);
+        return decimalFormatForTime.format(System.nanoTime()/1000000000.0 - initialTime);
+    }
+
+    public static String getReport(short numberOfNodes, short numberOfFrames,
+                                   double meanMessageTimeInterval, double tokenHoldingTime, double receiverSuccessProbability, double mean, double std, int throughput) {
+        return numberOfNodes + ", " +
+                numberOfFrames + ", " +
+                meanMessageTimeInterval + ", " +
+                tokenHoldingTime + ", " +
+                receiverSuccessProbability + ", " +
+                decimalFormatForMetrics.format(mean) + " +- " +
+                decimalFormatForMetrics.format(std) + ", "
+                + throughput
+                + "\r\n";
     }
 }

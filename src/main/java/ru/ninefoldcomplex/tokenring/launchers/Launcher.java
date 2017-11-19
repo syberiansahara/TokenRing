@@ -7,6 +7,10 @@ import ru.ninefoldcomplex.tokenring.threads.Node;
 import ru.ninefoldcomplex.tokenring.utils.Settings;
 import ru.ninefoldcomplex.tokenring.utils.Utils;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -44,8 +48,7 @@ public class Launcher {
         try {
             initializeThreads();
             runMainExecutionCycle();
-            analyzeLatency();
-            analyzeThroughput();
+            analyzeAndLogResults();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -90,23 +93,23 @@ public class Launcher {
         }
     }
 
-    private void analyzeLatency() {
-//        System.out.println(deliveryTimes);`
+    private void analyzeAndLogResults() throws IOException {
+        //todo refactoring
         DescriptiveStatistics stats = new DescriptiveStatistics();
 
         for( int i = 0; i < deliveryTimes.size(); i++) {
             stats.addValue(deliveryTimes.get(i));
         }
 
-        double mean = stats.getMean();
-        double std = stats.getStandardDeviation();
+        String report = Utils.getReport(numberOfNodes, numberOfFrames,
+                meanMessageTimeInterval, tokenHoldingTime, receiverSuccessProbability, stats.getMean(), stats.getStandardDeviation(), deliveryTimes.size());
 
-        System.out.println(mean);
-        System.out.println(std);
-        System.out.println(deliveryTimes.size());
-    }
+        System.out.println(report);
 
-    private void analyzeThroughput() {
-        System.out.println(deliveredPayloadVolume.get() / (3*1024.0));
+        BufferedWriter bw = Files.newBufferedWriter(Settings.logFile,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE);
+        bw.write(report);
+        bw.flush();
+
     }
 }
