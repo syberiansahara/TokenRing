@@ -24,27 +24,32 @@ public class Utils {
         return decimalFormat.format(System.nanoTime()/1000000000.0 - initialTime);
     }
 
-    public static String getReportOnLaunchCompletion(short numberOfNodes, short numberOfFrames,
-                                                     double meanMessageTimeInterval, double executionTime,
-                                                     double meanFrameTransmissionTime, double THTMultiplier,
-                                                     double mean, double std) {
+    public static String getReportOnLaunchWithTHT(short numberOfNodes, short numberOfFrames,
+                                                  double meanMessageTimeInterval, double executionTime,
+                                                  double mean, double std,
+                                                  double meanFrameTransmissionTime, double THTMultiplier) {
+        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageTimeInterval, executionTime, mean, std) + ", " +
+                decimalFormat.format(meanFrameTransmissionTime) + ", " +
+                THTMultiplier +
+                "\r\n";
+    }
+
+    public static String getReportOnBasicLaunch(short numberOfNodes, short numberOfFrames,
+                                                double meanMessageTimeInterval, double executionTime,
+                                                double mean, double std) {
+        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageTimeInterval, executionTime, mean, std) +
+                "\r\n";
+    }
+
+    private static String getBasicReport(short numberOfNodes, short numberOfFrames,
+                                        double meanMessageTimeInterval, double executionTime,
+                                        double mean, double std) {
         return numberOfNodes + ", " +
                 numberOfFrames + ", " +
                 meanMessageTimeInterval + ", " +
                 decimalFormat.format(executionTime) + ", " +
-                decimalFormat.format(meanFrameTransmissionTime) + ", " +
-                decimalFormat.format(THTMultiplier) + ", " +
                 decimalFormat.format(mean) + ", " +
-                decimalFormat.format(std) +
-                "\r\n";
-    }
-
-    public static String getReportOnTrialLaunchCompletion(short numberOfNodes, short numberOfFrames,
-                                                     double meanMessageTimeInterval, double executionTime) {
-        return numberOfNodes + ", " +
-                numberOfFrames + ", " +
-                meanMessageTimeInterval + ", " +
-                decimalFormat.format(executionTime) +
-                "\r\n";
+                decimalFormat.format(std) + ", " +
+                decimalFormat.format(Settings.targetDeliveredMessagesCount / executionTime);
     }
 }

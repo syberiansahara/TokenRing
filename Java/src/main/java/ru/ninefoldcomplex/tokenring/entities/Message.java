@@ -9,7 +9,7 @@ public class Message {
     private double sendTime;
     private final short senderSerialNumber;
     private final short receiverSerialNumber;
-    private byte[] messagePayload = new byte[3*1024]; //3 kBytes
+    private byte[] messagePayload = new byte[200]; //3 kBytes
     private boolean hasBeenDelivered;
 
     public Message(short senderSerialNumber, short receiverSerialNumber) {

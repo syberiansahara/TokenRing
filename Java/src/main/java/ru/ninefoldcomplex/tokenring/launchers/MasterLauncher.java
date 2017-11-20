@@ -8,7 +8,7 @@ public class MasterLauncher {
 //    private static short[] numberOfFramesArray = {1, 2, 5, 10};
 //    private static double[] meanMessageTimeIntervalArray = {0.1, 0.5, 1.0, 2.0};
 
-    private static short[] numberOfNodesArray = {2, 5, 10};
+    private static short[] numberOfNodesArray = {5, 10, 15, 20, };
     private static short[] numberOfFramesArray = {2, 5};
     private static double[] meanMessageTimeIntervalArray = {0.1, 1.0};
 
@@ -16,7 +16,9 @@ public class MasterLauncher {
         for (short numberOfNodes : numberOfNodesArray) {
             for (short numberOfFrames : numberOfFramesArray) {
                 for (double meanMessageTimeInterval : meanMessageTimeIntervalArray) {
-                    new Launcher(numberOfNodes, numberOfFrames, meanMessageTimeInterval).run();
+                    Launcher launcher = new Launcher(numberOfNodes, numberOfFrames, meanMessageTimeInterval);
+                    launcher.executeBasicLaunch();
+                    launcher.executeTHTLaunches();
                 }
             }
         }
