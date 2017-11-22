@@ -25,31 +25,32 @@ public class Utils {
     }
 
     public static String getReportOnLaunchWithTHT(short numberOfNodes, short numberOfFrames,
-                                                  double meanMessageTimeInterval, double executionTime,
+                                                  double meanMessageGenerationInterval, double executionTime,
                                                   double mean, double std,
                                                   double meanFrameTransmissionTime, double THTMultiplier) {
-        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageTimeInterval, executionTime, mean, std) + ", " +
+        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageGenerationInterval, executionTime, mean, std) + ", " +
                 decimalFormat.format(meanFrameTransmissionTime) + ", " +
                 THTMultiplier +
                 "\r\n";
     }
 
     public static String getReportOnBasicLaunch(short numberOfNodes, short numberOfFrames,
-                                                double meanMessageTimeInterval, double executionTime,
+                                                double meanMessageGenerationInterval, double executionTime,
                                                 double mean, double std) {
-        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageTimeInterval, executionTime, mean, std) +
+        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageGenerationInterval, executionTime, mean, std) +
                 "\r\n";
     }
 
     private static String getBasicReport(short numberOfNodes, short numberOfFrames,
-                                        double meanMessageTimeInterval, double executionTime,
+                                        double meanMessageGenerationInterval, double executionTime,
                                         double mean, double std) {
         return numberOfNodes + ", " +
                 numberOfFrames + ", " +
-                meanMessageTimeInterval + ", " +
+                meanMessageGenerationInterval + ", " +
                 decimalFormat.format(executionTime) + ", " +
                 decimalFormat.format(mean) + ", " +
                 decimalFormat.format(std) + ", " +
-                decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime);
+                decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime) + ", " +
+                (mean > numberOfFrames * meanMessageGenerationInterval ? "overloaded" : "underloaded");
     }
 }

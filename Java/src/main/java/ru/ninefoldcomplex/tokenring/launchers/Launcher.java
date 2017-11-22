@@ -29,7 +29,7 @@ public class Launcher {
 
     private final short numberOfNodes;
     private final short numberOfFrames;
-    private final double meanMessageTimeInterval;
+    private final double meanMessageGenerationInterval;
 
     private Node[] nodes;
     private Frame[] frames;
@@ -37,10 +37,10 @@ public class Launcher {
     private List<Double> deliveryTimes;
     private AtomicInteger deliveredPayloadVolume;
 
-    public Launcher(short numberOfNodes, short numberOfFrames, double meanMessageTimeInterval) {
+    public Launcher(short numberOfNodes, short numberOfFrames, double meanMessageGenerationInterval) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfFrames = numberOfFrames;
-        this.meanMessageTimeInterval = meanMessageTimeInterval;
+        this.meanMessageGenerationInterval = meanMessageGenerationInterval;
         this.targetDeliveredMessagesCount = Settings.targetDeliveredMessagesMultiplier * numberOfNodes;
     }
 
@@ -52,11 +52,11 @@ public class Launcher {
     private void reportBasicLaunch(double executionTime) throws Exception {
         DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
         String report = Utils.getReportOnBasicLaunch(numberOfNodes, numberOfFrames,
-                meanMessageTimeInterval, executionTime,
+                meanMessageGenerationInterval, executionTime,
                 stats.getMean(), stats.getStandardDeviation());
         System.out.println("Basic launch: " + report);
         Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
-                meanMessageTimeInterval + ".basic" + ".txt");
+                meanMessageGenerationInterval + ".basic" + ".txt");
 
         try (BufferedWriter bw = Files.newBufferedWriter(logFile,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
@@ -74,7 +74,7 @@ public class Launcher {
 
     public double getMeanFrameTransmissionTime() throws Exception {
         return Arrays.stream(Files.readAllLines(Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
-                meanMessageTimeInterval + ".basic.txt")).get(0).split(","))
+                meanMessageGenerationInterval + ".basic.txt")).get(0).split(","))
                 .map(String::trim)
                 .map(Double::parseDouble)
                 .toArray(Double[]::new)[4];
@@ -88,12 +88,12 @@ public class Launcher {
         DescriptiveStatistics stats = new DescriptiveStatistics(deliveryTimes.stream().mapToDouble(d -> d).toArray());
 
         String report = Utils.getReportOnLaunchWithTHT(numberOfNodes, numberOfFrames,
-                meanMessageTimeInterval, executionTime,
+                meanMessageGenerationInterval, executionTime,
                 stats.getMean(), stats.getStandardDeviation(),
                 meanFrameTransmissionTime, THTMultiplier);
         System.out.println("THT launch: " + report);
         Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
-                meanMessageTimeInterval + ".THT.txt");
+                meanMessageGenerationInterval + ".THT.txt");
 
         try (BufferedWriter bw = Files.newBufferedWriter(logFile,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
@@ -122,7 +122,7 @@ public class Launcher {
             nodes[(short) ThreadLocalRandom.current().nextInt(0, numberOfNodes)].enqueueFrame(frames[i]);
         }
 
-        messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
+        messageGenerator = new MessageGenerator(nodes, meanMessageGenerationInterval);
     }
 
     private double runMainExecutionCycle(int targetDeliveredMessagesCount, double tokenHoldingTime) throws InterruptedException {

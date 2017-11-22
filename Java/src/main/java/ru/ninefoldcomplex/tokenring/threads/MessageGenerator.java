@@ -12,12 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MessageGenerator extends Thread {
     private Node[] nodes;
     private short numberOfNodes;
-    private final double meanMessageTimeInterval;
+    private final double meanMessageGenerationInterval;
 
-    public MessageGenerator(Node[] nodes, double meanMessageTimeInterval) {
+    public MessageGenerator(Node[] nodes, double meanMessageGenerationInterval) {
         this.nodes = nodes;
         this.numberOfNodes = (short) nodes.length;
-        this.meanMessageTimeInterval = meanMessageTimeInterval;
+        this.meanMessageGenerationInterval = meanMessageGenerationInterval;
     }
 
     public void run() {
@@ -36,7 +36,7 @@ public class MessageGenerator extends Thread {
     }
 
     private long getNextSleepInterval() {
-        return new Double(Math.log(1 - (new Random().nextDouble()))*( - 1000.0 * meanMessageTimeInterval)).longValue();
+        return new Double(Math.log(1 - (new Random().nextDouble()))*( - 1000.0 * meanMessageGenerationInterval)).longValue();
     }
 
     private void enqueueAPendingMessageOnThisNode(short serialNumber) {
