@@ -55,8 +55,7 @@ public class Launcher {
                 meanMessageGenerationInterval, executionTime,
                 stats.getMean(), stats.getStandardDeviation());
         System.out.println("Basic launch: " + report);
-        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
-                meanMessageGenerationInterval + ".basic" + ".txt");
+        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + ".txt");
 
         try (BufferedWriter bw = Files.newBufferedWriter(logFile,
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {

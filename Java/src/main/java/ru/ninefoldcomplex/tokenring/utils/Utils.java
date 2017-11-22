@@ -10,10 +10,12 @@ import java.util.Locale;
 public class Utils {
     private static double initialTime;
     private static DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
+    private static DecimalFormat shortDecimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
 
     static  {
         initialTime = System.nanoTime()/1000000000.0;
         decimalFormat.setMaximumFractionDigits(6);
+        shortDecimalFormat.setMaximumFractionDigits(1);
     }
 
     public static double getTimeInSeconds() {
@@ -44,6 +46,7 @@ public class Utils {
     private static String getBasicReport(short numberOfNodes, short numberOfFrames,
                                         double meanMessageGenerationInterval, double executionTime,
                                         double mean, double std) {
+        boolean overloaded = mean > numberOfFrames * meanMessageGenerationInterval;
         return numberOfNodes + ", " +
                 numberOfFrames + ", " +
                 meanMessageGenerationInterval + ", " +
@@ -51,6 +54,7 @@ public class Utils {
                 decimalFormat.format(mean) + ", " +
                 decimalFormat.format(std) + ", " +
                 decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime) + ", " +
-                (mean > numberOfFrames * meanMessageGenerationInterval ? "overloaded" : "underloaded");
+                (overloaded ? "overloaded, " + numberOfFrames
+                        : "underloaded, " + shortDecimalFormat.format(mean/meanMessageGenerationInterval));
     }
 }
