@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by ninefoldcomplex on 12.11.2017.
  */
 public class Launcher {
-    private final int targetDeliveredMessagesCount = Settings.targetDeliveredMessagesCount;
+    private final int targetDeliveredMessagesCount;
     private final double maximumTokenHoldingTime = Settings.maximumTokenHoldingTime;
     private final double launcherSleepTimeInterval = Settings.launcherSleepTimeInterval;
     private final double receiverSuccessProbability = Settings.receiverSuccessProbability;
@@ -41,6 +41,7 @@ public class Launcher {
         this.numberOfNodes = numberOfNodes;
         this.numberOfFrames = numberOfFrames;
         this.meanMessageTimeInterval = meanMessageTimeInterval;
+        this.targetDeliveredMessagesCount = Settings.targetDeliveredMessagesMultiplier * numberOfNodes;
     }
 
     public void executeBasicLaunch() throws Exception {
@@ -124,7 +125,7 @@ public class Launcher {
         messageGenerator = new MessageGenerator(nodes, meanMessageTimeInterval);
     }
 
-    private double runMainExecutionCycle(int targetCyclesCount, double tokenHoldingTime) throws InterruptedException {
+    private double runMainExecutionCycle(int targetDeliveredMessagesCount, double tokenHoldingTime) throws InterruptedException {
         initializeLaunch(tokenHoldingTime);
 
         double fixedTime = Utils.getTimeInSeconds();
@@ -135,7 +136,7 @@ public class Launcher {
             nodes[i].start();
         }
 
-        while (deliveryTimes.size() < targetCyclesCount) {
+        while (deliveryTimes.size() < targetDeliveredMessagesCount) {
             Thread.sleep((long) launcherSleepTimeInterval * 1000);
         }
 

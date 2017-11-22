@@ -67,7 +67,7 @@ public class Node extends Thread {
                 handleIncomingMessage(currentFrame);
             } else if (IAmTheSender(currentFrame)) {
                 if (currentFrame.messageHasBeenDelivered()) {
-                    currentFrame.releaseToken();
+                    handleDeliveredMessage(currentFrame);
                 } else if (currentFrame.messageNotYetDelivered()) {
                     handleUndeliveredMessage(currentFrame);
                 }
@@ -75,6 +75,11 @@ public class Node extends Thread {
         }
 
         forwardFrame(currentFrame);
+    }
+
+    private void handleDeliveredMessage(Frame currentFrame) {
+        //there may be different logic for considering message delivered
+        currentFrame.releaseToken();
     }
 
     private void printReport(Frame currentFrame) {

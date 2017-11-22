@@ -50,6 +50,6 @@ public class Utils {
                 decimalFormat.format(executionTime) + ", " +
                 decimalFormat.format(mean) + ", " +
                 decimalFormat.format(std) + ", " +
-                decimalFormat.format(Settings.targetDeliveredMessagesCount / executionTime);
+                decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime);
     }
 }

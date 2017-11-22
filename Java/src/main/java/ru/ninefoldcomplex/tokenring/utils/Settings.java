@@ -7,7 +7,7 @@ import java.nio.file.Paths;
  * Created by ninefoldcomplex on 17.11.2017.
  */
 public class Settings {
-    public static int targetDeliveredMessagesCount = 50;
+    public static int targetDeliveredMessagesMultiplier = 10;
     public static double maximumTokenHoldingTime = Double.MAX_VALUE;
     public static double launcherSleepTimeInterval = 0.0;
     public static double receiverSuccessProbability = 0.7;
