@@ -54,7 +54,7 @@ public class Utils {
                 decimalFormat.format(mean) + ", " +
                 decimalFormat.format(std) + ", " +
                 decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime) + ", " +
-                (overloaded ? "overloaded, " + numberOfFrames
-                        : "underloaded, " + shortDecimalFormat.format(mean/meanMessageGenerationInterval));
+                (overloaded ? "overloaded, " + shortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes)
+                        : "underloaded, " + shortDecimalFormat.format(mean / (meanMessageGenerationInterval * numberOfNodes)));
     }
 }
