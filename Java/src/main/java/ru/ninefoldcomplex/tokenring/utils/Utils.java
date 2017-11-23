@@ -30,8 +30,8 @@ public class Utils {
                                                   double meanMessageGenerationInterval, double executionTime,
                                                   double mean, double std,
                                                   double meanFrameTransmissionTime, double THTMultiplier) {
-        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageGenerationInterval, executionTime, mean, std) + ", " +
-                decimalFormat.format(meanFrameTransmissionTime) + ", " +
+        return getBasicReport(numberOfNodes, numberOfFrames, meanMessageGenerationInterval, executionTime, mean, std) + " " +
+                decimalFormat.format(meanFrameTransmissionTime) + " " +
                 THTMultiplier +
                 "\r\n";
     }
@@ -47,14 +47,14 @@ public class Utils {
                                         double meanMessageGenerationInterval, double executionTime,
                                         double mean, double std) {
         boolean overloaded = mean > numberOfFrames * meanMessageGenerationInterval;
-        return numberOfNodes + ", " +
-                numberOfFrames + ", " +
-                meanMessageGenerationInterval + ", " +
-                decimalFormat.format(executionTime) + ", " +
-                decimalFormat.format(mean) + ", " +
-                decimalFormat.format(std) + ", " +
-                decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime) + ", " +
-                (overloaded ? "overloaded, " + shortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes)
-                        : "underloaded, " + shortDecimalFormat.format(mean / (meanMessageGenerationInterval * numberOfNodes)));
+        return numberOfNodes + " " +
+                numberOfFrames + " " +
+                meanMessageGenerationInterval + " " +
+                decimalFormat.format(executionTime) + " " +
+                decimalFormat.format(mean) + " " +
+                decimalFormat.format(std) + " " +
+                decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime) + " " +
+                (overloaded ? "overloaded " + shortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes)
+                        : "underloaded " + shortDecimalFormat.format(mean / (meanMessageGenerationInterval * numberOfNodes)));
     }
 }
