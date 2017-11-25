@@ -5,7 +5,7 @@ package ru.ninefoldcomplex.tokenring.launchers;
  */
 public class MasterLauncher {
 
-    private static short[] numberOfNodesArray = {65, 85};
+    private static short[] numberOfNodesArray = {15};
     private static double[] meanMessageGenerationIntervalArray = {0.01};
 
     public static void main(String[] args) throws Exception {
