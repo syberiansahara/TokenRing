@@ -11,11 +11,13 @@ public class Utils {
     private static double initialTime;
     private static DecimalFormat decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
     private static DecimalFormat shortDecimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
+    public static DecimalFormat notSoShortDecimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(Locale.US);
 
     static  {
         initialTime = System.nanoTime()/1000000000.0;
         decimalFormat.setMaximumFractionDigits(6);
         shortDecimalFormat.setMaximumFractionDigits(1);
+        notSoShortDecimalFormat.setMaximumFractionDigits(3);
     }
 
     public static double getTimeInSeconds() {
@@ -54,7 +56,7 @@ public class Utils {
                 decimalFormat.format(mean) + " " +
                 decimalFormat.format(std) + " " +
                 decimalFormat.format(Settings.targetDeliveredMessagesMultiplier * numberOfNodes / executionTime) + " " +
-                (overloaded ? "overloaded " + shortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes)
+                (overloaded ? "overloaded " + notSoShortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes)
                         : "underloaded " + shortDecimalFormat.format(mean / (meanMessageGenerationInterval * numberOfNodes)));
     }
 }

@@ -15,6 +15,5 @@ public class Settings {
     public static boolean weakDebugModeIsOn = false;
     public static Path logRoot = (Paths.get("")).toAbsolutePath().getParent().resolve("Calculations").resolve("THT");
 
-//    public static double[] tokenHoldingTimeMultiplierArray = {0, 0.7, 1.0, 1.5, 10};
-    public static double[] tokenHoldingTimeMultiplierArray = {1000000};
+    public static double[] tokenHoldingTimeMultiplierArray = {0.7, 1.0, 1.5, 5.0, 10, 15, 20};
 }

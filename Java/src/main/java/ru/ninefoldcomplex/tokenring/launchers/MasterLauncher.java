@@ -10,13 +10,13 @@ public class MasterLauncher {
 
     public static void main(String[] args) throws Exception {
         for (short numberOfNodes : numberOfNodesArray) {
-            int interval = numberOfNodes / 5;
+//            int interval = numberOfNodes / 5;
 //            for (short numberOfFrames : numberOfFramesArray) {
-            for (int numberOfFrames = numberOfNodes; numberOfFrames > 0; numberOfFrames -= interval) {
+            for (int numberOfFrames = numberOfNodes; numberOfFrames > 0; numberOfFrames --) {
                 for (double meanMessageGenerationInterval : meanMessageGenerationIntervalArray) {
                     Launcher launcher = new Launcher(numberOfNodes, (short) numberOfFrames, meanMessageGenerationInterval);
                     launcher.executeBasicLaunch();
-//                    launcher.executeTHTLaunches();
+                    launcher.executeTHTLaunches();
                 }
             }
         }

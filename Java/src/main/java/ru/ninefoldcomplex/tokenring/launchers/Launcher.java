@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static ru.ninefoldcomplex.tokenring.utils.Utils.notSoShortDecimalFormat;
 
 /**
  * Created by ninefoldcomplex on 12.11.2017.
@@ -55,7 +58,7 @@ public class Launcher {
                 meanMessageGenerationInterval, executionTime,
                 stats.getMean(), stats.getStandardDeviation());
         System.out.println("Basic launch: " + report);
-        Path logFile = Settings.logRoot.resolve(numberOfNodes + ".txt");
+        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + notSoShortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes) + ".txt");
 
         try (BufferedWriter bw = Files.newBufferedWriter(logFile,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
@@ -72,11 +75,10 @@ public class Launcher {
     }
 
     public double getMeanFrameTransmissionTime() throws Exception {
-        return Arrays.stream(Files.readAllLines(Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
-                meanMessageGenerationInterval + ".basic.txt")).get(0).split(","))
+        return Double.parseDouble(Arrays.stream(Files.readAllLines(Settings.logRoot.resolve(numberOfNodes + "-" + notSoShortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes) + ".txt")).get(0).split(" "))
                 .map(String::trim)
-                .map(Double::parseDouble)
-                .toArray(Double[]::new)[4];
+                .collect(Collectors.toList())
+                .get(4));
     }
 
     public void executeTHTLaunch(double meanFrameTransmissionTime, double THTMultiplier) throws Exception {
@@ -91,8 +93,7 @@ public class Launcher {
                 stats.getMean(), stats.getStandardDeviation(),
                 meanFrameTransmissionTime, THTMultiplier);
         System.out.println("THT launch: " + report);
-        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + numberOfFrames + "-" +
-                meanMessageGenerationInterval + ".THT.txt");
+        Path logFile = Settings.logRoot.resolve(numberOfNodes + "-" + notSoShortDecimalFormat.format(numberOfFrames * 1.0 / numberOfNodes) + "-THT.txt");
 
         try (BufferedWriter bw = Files.newBufferedWriter(logFile,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {

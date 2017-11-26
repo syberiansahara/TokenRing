@@ -17,8 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Node extends Thread {
     private final short nodeSerialNumber;
     private Node nextNode;
-    private Queue<Frame> enqueuedFrames = new ConcurrentLinkedQueue<Frame>();
-    private Queue<Message> pendingMessages = new ConcurrentLinkedQueue<Message>();
+    private Queue<Frame> enqueuedFrames = new ConcurrentLinkedQueue<>();
+    private Queue<Message> pendingMessages = new ConcurrentLinkedQueue<>();
     private final double tokenHoldingTime;
     private final double receiverSuccessProbability;
     private List<Double> deliveryTimes;
@@ -47,7 +47,6 @@ public class Node extends Thread {
     public void run() {
         while (true) {
             if (! enqueuedFrames.isEmpty()) {
-//                    Thread.sleep(1000);
                 handleTheFirstFrameInTheQueue();
             }
         }
