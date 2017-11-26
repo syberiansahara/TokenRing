@@ -1,0 +1,48 @@
+\begin{lstlisting}
+private void initializeLaunch(double tokenHoldingTime) {
+    deliveryTimes = new CopyOnWriteArrayList<Double>();
+    deliveredPayloadVolume = new AtomicInteger();
+
+    nodes = new Node[numberOfNodes];
+    frames = new Frame[numberOfFrames];
+
+    for (short i = 0; i < numberOfNodes; i++) {
+        nodes[i] = new Node(i, tokenHoldingTime, receiverSuccessProbability, deliveryTimes, deliveredPayloadVolume);
+    }
+
+    for (short i = 0; i < numberOfNodes; i++) {
+        nodes[i].setNextNode(nodes[(i+1)%numberOfNodes]);
+    }
+
+    for (short i = 0; i < numberOfFrames; i++) {
+        frames[i] = new Frame(i);
+        nodes[(short) ThreadLocalRandom.current().nextInt(0, numberOfNodes)].enqueueFrame(frames[i]);
+    }
+
+    messageGenerator = new MessageGenerator(nodes, meanMessageGenerationInterval);
+}
+
+private double runMainExecutionCycle(int targetDeliveredMessagesCount, double tokenHoldingTime) throws InterruptedException {
+    initializeLaunch(tokenHoldingTime);
+
+    double fixedTime = Utils.getTimeInSeconds();
+
+    messageGenerator.start();
+
+    for (short i = 0; i < numberOfNodes; i++) {
+        nodes[i].start();
+    }
+
+    while (deliveryTimes.size() < targetDeliveredMessagesCount) {
+        Thread.sleep((long) launcherSleepTimeInterval * 1000);
+    }
+
+    for (short i = 0; i < numberOfNodes; i++) {
+        messageGenerator.stop();
+        nodes[i].stop();
+    }
+
+    return Utils.getTimeInSeconds() - fixedTime;
+}
+
+\end{lstlisting}

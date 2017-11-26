@@ -1,0 +1,24 @@
+\begin{lstlisting}
+public void handleTheFirstFrameInTheQueue() {
+    Frame currentFrame = enqueuedFrames.remove();
+
+    if (Settings.debugModeIsOn) printReport(currentFrame);
+
+    if (currentFrame.isToken()) {
+        if (IHaveAPendingMessage()) {
+            currentFrame.sendMessage(pendingMessages.remove());
+        }
+    } else {
+        if (IAmTheReceiver(currentFrame)) {
+            handleIncomingMessage(currentFrame);
+        } else if (IAmTheSender(currentFrame)) {
+            if (currentFrame.messageHasBeenDelivered()) {
+                handleDeliveredMessage(currentFrame);
+            } else if (currentFrame.messageNotYetDelivered()) {
+                handleUndeliveredMessage(currentFrame);
+            }
+        }
+    }
+    forwardFrame(currentFrame);
+}
+\end{lstlisting}

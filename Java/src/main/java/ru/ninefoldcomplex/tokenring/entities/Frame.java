@@ -54,6 +54,5 @@ public class Frame {
     public void releaseToken() {
         message = null;
     }
-
 }
 

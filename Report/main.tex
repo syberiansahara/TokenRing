@@ -1,0 +1,106 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{comment}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+
+\definecolor{Orange}{cmyk}{0.0,0.56,0.58,0.11}
+\definecolor{Gray}{gray}{0.5}
+\lstset{
+    language=Java,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{Orange},
+    commentstyle=\color{Gray},
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    showspaces=false,
+    showtabs=false,
+    numbers=left,
+}
+
+
+\title{Token Ring}
+\author{Марина Белялова}
+\date{26 ноября 2017}
+
+\begin{document}
+
+\begin{center}
+
+
+\textsc{\Large Московский Физико-Технический Институт \\ (Государственный университет)}\\[1cm]
+\textsc{\normalsize Кафедра банковских информационных технологий}\\[4cm]
+{ \huge \bfseries Token Ring \\[1cm] }
+\textnormal{\normalsize Выполнила cтудентка 285 гр. Марина Белялова}\\[10cm]
+\textnormal{Москва, 2017}
+\end{center}
+
+%=============================================================
+
+\newpage
+
+\tableofcontents
+%=============================================================
+
+\newpage
+\section{Описание задачи}
+В данной работе описана реализация модели сетевого протокола Token Ring на языке Java. Целью данной работы являлось исследование зависимости характеристик latency и throughput от числа нод и загруженности нод, а так же поиск варианта оптимизации работы для недогруженного и перегруженного режимов передачи пакетов.
+
+\begin{itemize}
+\item Система состоит из N пронумерованных от 0 до N-1 нод. Ноды упорядочены по порядковому номеру. После ноды N-1 следует нода 0, т.е. ноды формируют кольцо. 
+\item Соседние в кольце ноды могут обмениваться пакетами. Обмен возможен только по часовой стрелке. 
+\item Каждая нода, получив пакет от предыдущего, отдает его следующему.
+\item Пакеты не могут обгонять друг друга.
+\end{itemize}
+
+\section{Основные сущности и соответствующие классы}
+Сообщения, которые передаются в системе, реализованы в классе Message. Сообщение имеет размер (здесь был выбран размер 3кБ) и при отправке фиксирует в себе время. Содержит в себе логическую величину
+\lstinline|hasBeenDelivered.|
+
+Класс Frame реализует сущность пакета, который может пребывать в двух состояниях: \lstinline|isToken() = true|, т.е. фрейм пустой и не содержит в себе сообщение, либо фрейм содержит сообщение, которое может быть доставлено и не доставлено. Когда фрейм представляет собой токен, любая нода, желающая отправить сообщение, может использовать этот фрейм.
+
+Класс Node реализует узел сети. Каждая нода имеет очередь \lstinline|Queue<Message> pendingMessages = new ConcurrentLinkedQueue<>()| сообщений, ожидающих отправки, и очередь входящих фреймов \lstinline|Queue<Frame> enqueuedFrames = new ConcurrentLinkedQueue<>()|. Node содержит в себе логику обработки входящих фреймов:
+
+\input Classes/Node
+
+В методе \lstinline|void handleIncomingMessage(Frame currentFrame)| успешность доставки сообщения имеет распределение Бернулли с вероятностью успеха $p$. Конкретные значения в экспериментах указаны в соответствующих разделах.
+
+
+
+\section{Основные метрики}
+Для измерения времени использовалась системная функция \lstinline|System.nanoTime()|.
+
+
+\section{Исследование зависимости latency и throughput от числа нод и загруженности нод}
+
+Вероятность успеха доставки сообщения $p=0.85$.
+
+\section{Исследование зависимости latency и throughput от token holding time при различных значениях загруженности ноды}
+
+Вероятность успеха доставки сообщения $p=0.75$.
+
+\newpage
+% \input Classes/Message
+
+% \input Classes/Frame
+
+% \input Classes/Node
+
+% \input Classes/MessageGenerator
+
+% \input Classes/Launcher
+
+\input Classes/LauncherExtract
+
+
+
+
+
+
+
+\end{document}
